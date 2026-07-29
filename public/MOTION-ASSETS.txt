@@ -1,0 +1,19 @@
+Motion mask notes
+=================
+
+oriental-loong-mask.avif
+  Original raster artwork prepared for this personal-site prototype. It is
+  never displayed directly; the animation samples its dark ink as attractor
+  coordinates for letter fragments and particles.
+
+cursive-long-mask.png
+  A cleaned sampling crop of Huai Su's cursive rendering of 龍 from
+  "Compilation of Cursive Characters" (草字彙), authored by Shi Liang during
+  the Qing dynasty. The source scan contains eight historic renditions and is
+  marked PD-Art on Wikimedia Commons.
+
+  Source:
+  https://commons.wikimedia.org/wiki/File:Cursive_characters_dragon.jpg
+
+  The site uses only the high-contrast coordinates of the selected glyph as a
+  particle attractor; the scan itself is not shown.

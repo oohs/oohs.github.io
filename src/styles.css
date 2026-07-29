@@ -1,0 +1,1070 @@
+:root {
+  color-scheme: light;
+  font-family: "Times New Roman", Times, serif;
+  font-synthesis: none;
+  /* Mirrors PAPER and INK in src/palette.js. The local canvas paints --paper
+     over hovered glyphs to hide the DOM text beneath it, so any drift between
+     these two values shows up as pale rectangles under the cursor. */
+  --paper: #ffffff;
+  --ink: #000000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font: 16px/normal "Times New Roman", Times, serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+a {
+  color: #0000ee;
+}
+
+a:visited {
+  color: #551a8b;
+}
+
+.home-page {
+  width: min(900px, calc(100% - 32px));
+  margin: 8px auto 48px;
+}
+
+.home-page h1 {
+  font-size: 2em;
+  margin-block: 0.67em;
+}
+
+.home-page h2 {
+  font-size: 1.5em;
+  margin-block: 0.83em;
+}
+
+.study-index li {
+  margin-block: 0.58em;
+}
+
+.matter-experience {
+  --owner-fade: 180ms;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  isolation: isolate;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.matter-experience:focus-visible {
+  outline: none;
+}
+
+/* The full-screen article owns keyboard focus so Space can advance the page.
+   Put that indication on the compact instruction panel instead of drawing an
+   outline around the entire viewport. */
+.matter-experience:focus-visible .page-motto {
+  border-left-color: currentColor;
+}
+
+.semantic-pages {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 1;
+  transition: opacity var(--owner-fade) cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.matter-face {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+}
+
+.matter-face[data-active="false"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.default-page {
+  position: absolute;
+  inset: max(76px, calc(env(safe-area-inset-top) + 72px)) 10px max(14px, calc(env(safe-area-inset-bottom) + 12px));
+  /* One screen, no scrolling. motion.js fits the type to the box on mount and
+     on resize, so the whole page is always visible at once. */
+  overflow: hidden;
+  background: transparent;
+  color: var(--ink);
+  font: 16px/normal "Times New Roman", Times, serif;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+.default-page::selection,
+.default-page *::selection {
+  color: inherit;
+  background: transparent;
+}
+
+.glyph-token,
+.glyph-ink {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-decoration: inherit;
+}
+
+.glyph-ink {
+  position: relative;
+}
+
+/* Corruption.
+   ---------------------------------------------------------------------------
+   The effect is a slice of the character being cut out and pushed sideways —
+   not a symbol laid on top of it. Three layers:
+
+     · the real character, still there and still the thing the canvas reads,
+     · ::before — a band of paper that *erases* one horizontal slice of it,
+     · ::after  — a copy clipped to exactly that band and displaced sideways.
+
+   So the letter tears rather than acquiring a decoration, which is what makes
+   it read as damage to the text instead of graffiti over it. Low corruption
+   displaces a slice of the letter itself; past a threshold the displaced slice
+   becomes a wrong character, so the glyph degrades from torn to garbled.
+
+   The advance width is pinned to the clean character first, so a page can
+   corrupt completely without a line reflowing. Every offset comes from a
+   per-glyph custom property, which makes a fully corrupted page pure paint;
+   only glyphs carrying `data-live` animate, and JS rotates that set so the
+   page looks like all of it is glitching while a hundred-odd elements move. */
+.glyph-ink[data-corrupt] {
+  display: inline-block;
+  text-align: center;
+  vertical-align: baseline;
+  transform: translate(
+    calc(var(--gx, 0) * var(--c, 0) * 0.05em),
+    calc(var(--gy, 0) * var(--c, 0) * 0.03em)
+  );
+}
+
+/* The cut. A band of paper straight across the character. */
+.glyph-ink[data-corrupt]::before {
+  content: "";
+  position: absolute;
+  left: -0.04em;
+  right: -0.04em;
+  top: var(--gband, 42%);
+  height: calc(16% + var(--c, 0) * 20%);
+  background: var(--paper);
+  pointer-events: none;
+}
+
+/* The displaced slice. Clipped to the same band, then moved sideways — the
+   clip happens in the element's own box and the transform moves the result,
+   so the slice travels outside its cell the way a torn scanline would. */
+.glyph-ink[data-corrupt]::after {
+  content: attr(data-glyph);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  color: inherit;
+  pointer-events: none;
+  clip-path: inset(
+    var(--gband, 42%) 0
+    calc(84% - var(--c, 0) * 20% - var(--gband, 42%)) 0
+  );
+  transform: translateX(calc(var(--gx, 0) * var(--c, 0) * 0.29em));
+}
+
+/* The live set. `steps()` throughout: a glitch that eases is a wobble. Each
+   track rests for most of its cycle, so what reads is an irregular stutter
+   rather than a hum. */
+.glyph-ink[data-corrupt][data-live] {
+  animation: glyph-shiver var(--gd, 900ms) steps(1, end) infinite;
+  animation-delay: var(--gdelay, 0ms);
+}
+
+.glyph-ink[data-corrupt][data-live]::before {
+  animation: glyph-cut calc(var(--gd, 900ms) * 1.31) steps(1, end) infinite;
+  animation-delay: var(--gdelay, 0ms);
+}
+
+.glyph-ink[data-corrupt][data-live]::after {
+  animation: glyph-slip calc(var(--gd, 900ms) * 0.79) steps(1, end) infinite;
+  animation-delay: var(--gdelay, 0ms);
+}
+
+@keyframes glyph-shiver {
+  0%, 66% {
+    transform: translate(
+      calc(var(--gx) * var(--c) * 0.05em),
+      calc(var(--gy) * var(--c) * 0.03em)
+    );
+  }
+  68% { transform: translate(calc(var(--c) * -0.13em), calc(var(--c) * 0.04em)); }
+  71% { transform: translate(calc(var(--c) * 0.1em), calc(var(--c) * -0.025em)); }
+  74%, 100% {
+    transform: translate(
+      calc(var(--gx) * var(--c) * 0.05em),
+      calc(var(--gy) * var(--c) * 0.03em)
+    );
+  }
+}
+
+/* The cut moves with a transform rather than `top`: `top` on a positioned box
+   is a layout change, and a hundred of those a frame is the one thing here
+   that could actually cost something. */
+@keyframes glyph-cut {
+  0%, 52% { transform: translateY(0); }
+  54% { transform: translateY(-0.22em); }
+  60% { transform: translateY(0.26em); }
+  64%, 100% { transform: translateY(0); }
+}
+
+@keyframes glyph-slip {
+  0%, 58% {
+    transform: translateX(calc(var(--gx) * var(--c) * 0.29em));
+    clip-path: inset(var(--gband) 0 calc(84% - var(--c) * 20% - var(--gband)) 0);
+  }
+  60% {
+    transform: translateX(calc(var(--c) * 0.52em));
+    clip-path: inset(calc(var(--gband) - 22%) 0 calc(96% - var(--gband)) 0);
+  }
+  66% {
+    transform: translateX(calc(var(--c) * -0.42em));
+    clip-path: inset(calc(var(--gband) + 26%) 0 calc(58% - var(--gband)) 0);
+  }
+  70%, 100% {
+    transform: translateX(calc(var(--gx) * var(--c) * 0.29em));
+    clip-path: inset(var(--gband) 0 calc(84% - var(--c) * 20% - var(--gband)) 0);
+  }
+}
+
+/* The photograph floats beside the text so a portrait does not eat the whole
+   column on a page that is not allowed to scroll. It is cut into tiles by
+   motion.js and behaves as text from there on. */
+.page-photo {
+  float: right;
+  clear: right;
+  width: 236px;
+  margin: 0 0 0.7em 1.3em;
+}
+
+.photo-frame {
+  position: relative;
+  display: block;
+}
+
+/* The corruption canvas sits exactly over the bitmap and is what everything
+   downstream actually samples. The `<img>` stays in the flow underneath: it is
+   what sizes the box and what the canvas is painted from. Once the canvas has
+   its first complete frame, hide only the source pixels so transparent marks
+   are not composited twice. */
+img[data-diffuse][data-diffuse-canvas-ready="true"] {
+  opacity: 0;
+}
+
+.photo-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.page-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* The canvas paints tiles of this bitmap over the top of it; any smoothing
+     difference between the two would show as a seam. */
+  image-rendering: auto;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.page-photo figcaption {
+  margin-top: 0.35em;
+  font-size: 0.78em;
+  line-height: 1.25;
+  color: #444;
+}
+
+.live-age {
+  white-space: nowrap;
+}
+
+.opening-line {
+  font-size: 1.08em;
+  line-height: 1.35;
+}
+
+.research-question {
+  line-height: 1.4;
+  margin-block: 1.2em;
+}
+
+.coursework {
+  margin-block: 1em;
+}
+
+.coursework > h2,
+.course-level > h3 {
+  break-after: avoid;
+}
+
+.coursework > h2 {
+  margin-bottom: 0.2em;
+}
+
+.default-page .coursework-note {
+  margin: 0 0 0.55em;
+  color: #444;
+  font-size: 0.88em;
+  line-height: 1.2;
+}
+
+.coursework-groups {
+  display: block;
+}
+
+.course-level {
+  min-width: 0;
+  break-inside: avoid;
+}
+
+.course-level + .course-level {
+  margin-top: 0.7em;
+}
+
+.course-level > h3 {
+  margin: 0 0 0.28em;
+  font-size: 1em;
+  line-height: 1.2;
+}
+
+.default-page .course-list {
+  display: grid;
+  grid-template-columns: 4.25em minmax(0, 1fr);
+  column-gap: 0.65em;
+  row-gap: 0.14em;
+  margin: 0;
+  line-height: 1.24;
+}
+
+.course-list dt {
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.course-list dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.publication-more .brand-link {
+  margin-inline: 0.12em;
+}
+
+.default-page .contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25em 0.62em;
+  margin-block: 1em 0.28em;
+  break-inside: avoid;
+}
+
+.default-page .contact-email {
+  margin-block: 0.28em 1em;
+  break-inside: avoid;
+}
+
+.brand-link {
+  display: inline-flex;
+  width: 1.65em;
+  height: 1.65em;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  line-height: 0;
+  text-decoration: none;
+  vertical-align: -0.42em;
+}
+
+.brand-link:visited {
+  color: var(--ink);
+}
+
+.brand-link:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+}
+
+.brand-icon-frame {
+  position: relative;
+  display: block;
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.brand-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.page-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25em 1em;
+  margin-top: 0.65em;
+  color: #555;
+  font-size: 0.78em;
+  line-height: 1.2;
+  break-inside: avoid;
+}
+
+.page-footer-credit,
+.page-footer-help {
+  display: inline;
+}
+
+.page-footer-copyright {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.footer-logo-frame {
+  position: relative;
+  display: inline-block;
+  width: 1.35em;
+  height: 1.35em;
+  margin-inline: 0.08em;
+  vertical-align: -0.34em;
+}
+
+.footer-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.glyph-baseline-probe {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  vertical-align: baseline;
+  pointer-events: none;
+}
+
+.default-page h1 {
+  font-size: 2em;
+  margin-block: 0.67em;
+}
+
+.default-page h2 {
+  font-size: 1.5em;
+  margin-block: 0.83em;
+}
+
+.default-page p,
+.default-page ul,
+.default-page ol,
+.default-page dl,
+.default-page pre,
+.default-page blockquote,
+.default-page table,
+.default-page fieldset {
+  margin-block: 1em;
+}
+
+.default-page table {
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+.default-page th,
+.default-page td {
+  padding: 1px 4px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.default-page pre {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+.local-canvas,
+.global-canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  transition: opacity var(--owner-fade) cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.local-canvas {
+  z-index: 3;
+  opacity: 1;
+}
+
+.global-canvas {
+  z-index: 4;
+  opacity: 0;
+}
+
+.matter-experience[data-handoff="commit"] .semantic-pages,
+.matter-experience[data-handoff="commit"] .local-canvas,
+.matter-experience[data-handoff="commit"] .global-canvas {
+  transition: none !important;
+}
+
+.matter-experience[data-owner="canvas"] .semantic-pages {
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+
+.matter-experience[data-owner="canvas"] .default-page {
+  overflow: hidden;
+}
+
+.matter-experience[data-owner="canvas"] .local-canvas {
+  opacity: 0;
+}
+
+.matter-experience[data-owner="canvas"] .global-canvas {
+  opacity: 1;
+}
+
+.matter-experience[data-owner="returning"] .semantic-pages,
+.matter-experience[data-owner="dom"] .semantic-pages,
+.matter-experience[data-owner="preparing"] .semantic-pages {
+  opacity: 1;
+}
+
+.matter-experience[data-owner="returning"] .global-canvas,
+.matter-experience[data-owner="dom"] .global-canvas,
+.matter-experience[data-owner="preparing"] .global-canvas {
+  opacity: 0;
+}
+
+/* The disturbance meter. A rule across the top edge showing how close the page
+   is to changing state. It climbs while you push the type around and drains on
+   its own the moment you stop. Filling it is the only way through — there is no
+   button. Present in every state; the midpoint counts against a larger charge. */
+.disturb-track {
+  position: fixed;
+  z-index: 7;
+  inset: 0 0 auto;
+  height: 2px;
+  pointer-events: none;
+}
+
+.disturb-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--disturb, 0) * 100%);
+  background: var(--ink);
+  opacity: 0.34;
+  transition: width 200ms linear, opacity 300ms ease;
+}
+
+.matter-experience[data-phase="midpoint"] .disturb-fill {
+  opacity: 0.5;
+}
+
+/* The clock. One hand, one full turn per lifetime, sitting in the top-right
+   corner beside the age line. Cumulative degrees rather than an angle modulo a
+   turn: the hand has to be able to travel *backwards* through the whole turn
+   when the page resets, and a wrapped angle would take the short way round. */
+.age-clock-control {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  place-items: center;
+  flex: none;
+  color: inherit;
+  outline: none;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.age-clock-control:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+.age-clock-control:not([aria-disabled="true"]):hover .age-clock-rim,
+.age-clock-control[data-dragging="true"] .age-clock-rim {
+  stroke-width: 2;
+  opacity: 0.62;
+}
+
+.age-clock-control[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.age-clock-control[data-dragging="true"] .age-clock-hand,
+.age-clock-control[data-clock-sync="true"] .age-clock-hand {
+  transition: none;
+}
+
+.age-clock-control[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.age-clock {
+  width: 48px;
+  height: 48px;
+  overflow: visible;
+  flex: none;
+  pointer-events: none;
+}
+
+.age-clock-rim {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  opacity: 0.32;
+}
+
+.age-clock-ticks line {
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  opacity: 0.22;
+}
+
+.age-clock-ticks .age-clock-cardinal {
+  stroke-width: 2.4;
+  opacity: 0.4;
+}
+
+.age-clock-hand {
+  stroke: var(--ink);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  opacity: 0.82;
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  rotate: calc(var(--hand-age, 0) * 1deg);
+  transition: rotate 460ms linear;
+}
+
+/* The reset. The hand sweeps back through the whole turn it made. */
+.age-clock[data-rewind="true"] .age-clock-hand {
+  /* The shared animation frame also drives the readout and favicon, so the
+     hand must display those exact angles instead of lagging behind in CSS. */
+  transition: none;
+}
+
+.age-clock-pin {
+  fill: var(--ink);
+  opacity: 0.62;
+}
+
+.age-status {
+  color: #222;
+  font: 13px/1.2 Arial, Helvetica, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Stable page chrome: the explanation stays at top-left while the larger clock
+   and timer stay at top-right. It is outside the animated text pipeline. */
+.experience-chrome {
+  position: absolute;
+  z-index: 8;
+  top: max(7px, calc(env(safe-area-inset-top) + 6px));
+  left: max(10px, calc(env(safe-area-inset-left) + 9px));
+  right: max(10px, calc(env(safe-area-inset-right) + 9px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1.25rem;
+  pointer-events: none;
+}
+
+.page-motto {
+  width: min(650px, 100%);
+  padding: 2px 4px;
+  border-left: 2px solid transparent;
+  background: var(--paper);
+  color: #333;
+  font-family: "Times New Roman", Times, serif;
+  letter-spacing: 0.005em;
+}
+
+.page-motto p {
+  margin: 0;
+}
+
+/* Two instructions, one shown at a time. Swapping the text in CSS rather than
+   in JS keeps it out of the corruption system's way — this block is `data-ui`
+   and is never tokenised. */
+.page-motto-midpoint {
+  display: none;
+}
+
+.matter-experience[data-phase="midpoint"] .page-motto-stable,
+.matter-experience[data-phase="resolving"] .page-motto-stable {
+  display: none;
+}
+
+.matter-experience[data-phase="midpoint"] .page-motto-midpoint,
+.matter-experience[data-phase="resolving"] .page-motto-midpoint {
+  display: block;
+}
+
+.page-motto-title {
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.25;
+}
+
+.page-motto-instruction {
+  margin-top: 2px !important;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.28;
+}
+
+.experiment-nav {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.65rem;
+  min-height: 48px;
+  padding-left: 4px;
+  background: var(--paper);
+  color: #000;
+  pointer-events: auto;
+}
+
+.experiment-nav button {
+  cursor: pointer;
+}
+
+.sound-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  min-width: 44px;
+  min-height: 40px;
+  padding: 5px 8px;
+  color: var(--ink);
+  font: 12px/1 Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  border: 1px solid #777;
+  border-radius: 2px;
+}
+
+.sound-control:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.sound-control-icon {
+  font: 18px/1 "Times New Roman", Times, serif;
+}
+
+.sound-control-label::after {
+  content: " on";
+}
+
+.sound-control[aria-pressed="false"] {
+  color: #555;
+  border-color: #aaa;
+}
+
+.sound-control[aria-pressed="false"] .sound-control-icon {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.sound-control[aria-pressed="false"] .sound-control-label::after {
+  content: " off";
+}
+
+.sound-control[data-state="locked"] {
+  border-style: dashed;
+}
+
+.sound-control[data-state="locked"] .sound-control-label::after {
+  content: " unlock";
+}
+
+/* Two columns once there is width for them. A page that cannot scroll has a
+   fixed height budget, so the only way to hold a readable type size as the
+   content grows is to spend the width instead — single-column at this measure
+   was forcing the auto-fit down to eight and a half pixels. */
+@media (min-width: 1000px) {
+  .default-page {
+    columns: 2;
+    column-gap: 2.6em;
+    column-fill: auto;
+  }
+
+  .default-page > h1,
+  .default-page > hr {
+    column-span: all;
+  }
+}
+
+@media (max-width: 900px), (max-height: 700px) {
+  .default-page h1,
+  .default-page h2,
+  .default-page p,
+  .default-page ul,
+  .default-page ol,
+  .default-page dl,
+  .default-page pre,
+  .default-page blockquote,
+  .default-page table,
+  .default-page fieldset {
+    margin-block: 0.48em;
+  }
+
+  .page-photo {
+    width: 38%;
+    max-width: 210px;
+    margin: 0 0 0.5em 0.9em;
+  }
+
+  .page-footer {
+    gap: 0.15em 0.65em;
+    margin-top: 0.4em;
+  }
+
+  .coursework {
+    margin-block: 0.6em;
+  }
+
+  .coursework > h2 {
+    margin-bottom: 0.15em;
+  }
+
+  .default-page .coursework-note {
+    margin-bottom: 0.4em;
+  }
+
+  .course-level + .course-level {
+    margin-top: 0.48em;
+  }
+
+  .default-page .course-list {
+    column-gap: 0.55em;
+    row-gap: 0.08em;
+    line-height: 1.18;
+  }
+}
+
+@media (min-width: 620px) and (max-width: 999px) {
+  .coursework-groups {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
+    align-items: start;
+    gap: 1.35em;
+  }
+
+  .course-level + .course-level {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .experience-chrome {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .experiment-nav {
+    min-height: 42px;
+    padding-left: 6px;
+  }
+
+  .default-page {
+    top: max(128px, calc(env(safe-area-inset-top) + 124px));
+    bottom: max(12px, calc(env(safe-area-inset-bottom) + 10px));
+  }
+
+  .age-clock {
+    width: 42px;
+    height: 42px;
+  }
+
+  .age-status {
+    font-size: 12.5px;
+  }
+
+  .sound-control {
+    min-height: 38px;
+  }
+}
+
+@media (max-height: 700px) and (min-width: 901px) {
+  .default-page {
+    top: max(65px, calc(env(safe-area-inset-top) + 61px));
+    bottom: max(10px, calc(env(safe-area-inset-bottom) + 8px));
+  }
+
+  .page-motto-title {
+    font-size: 12px;
+  }
+
+  .page-motto-instruction {
+    font-size: 11px;
+  }
+
+  .experiment-nav {
+    min-height: 42px;
+  }
+
+  .age-clock {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (min-width: 520px) and (max-width: 900px) and (max-height: 700px) and (orientation: landscape) {
+  .experience-chrome {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+  }
+
+  .page-motto {
+    width: min(520px, 100%);
+  }
+
+  .page-motto-instruction {
+    font-size: 10px;
+    line-height: 1.18;
+  }
+
+  .default-page {
+    top: max(72px, calc(env(safe-area-inset-top) + 68px));
+    bottom: max(8px, calc(env(safe-area-inset-bottom) + 6px));
+    columns: 2;
+    column-gap: 2rem;
+  }
+
+  .page-photo {
+    width: 34%;
+    max-width: 180px;
+  }
+}
+
+/* Very small landscape phones do not have enough physical area for the long
+   research page at a legible fitted size. Keep the fixed chrome, but allow the
+   semantic page itself to scroll instead of clipping a third column offscreen. */
+@media (max-width: 599px) and (max-height: 380px) and (orientation: landscape) {
+  .matter-experience,
+  .default-page {
+    touch-action: pan-y;
+  }
+
+  .default-page {
+    columns: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .page-photo {
+    width: 32%;
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 460px) {
+  .experience-chrome {
+    gap: 2px;
+  }
+
+  .page-motto-title {
+    font-size: 12px;
+  }
+
+  .page-motto-instruction {
+    font-size: 10.5px;
+    line-height: 1.22;
+  }
+
+  .default-page {
+    top: max(121px, calc(env(safe-area-inset-top) + 117px));
+  }
+
+  .age-clock {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sound-control {
+    min-height: 36px;
+    padding-inline: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .local-canvas,
+  .global-canvas,
+  .disturb-track {
+    display: none;
+    transition: none;
+  }
+
+  .age-clock-hand {
+    transition: none;
+  }
+
+  .semantic-pages {
+    opacity: 1 !important;
+    transition: none;
+  }
+
+}

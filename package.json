@@ -1,0 +1,12 @@
+{
+  "name": "lawrence-long-emergent-pages",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "generate-preview": "swift scripts/generate-preview.swift public/website-preview.png",
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs"
+  }
+}

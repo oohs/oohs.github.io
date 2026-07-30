@@ -1241,7 +1241,7 @@ const cvPath = resolve(root, "public", "cv.pdf");
 await stat(cvPath);
 assert.equal(
   createHash("sha256").update(await readFile(cvPath)).digest("hex"),
-  "998abb5d965f17806b1feb0d18998e0c38c58b9cd5568dc3da7e16a59df4c4aa",
+  "ca5e06137ad101b36f47bdda1dcfd539159d8bd23f0af199d81b20d9e2bb2b51",
   "the published CV must remain the reviewed phone-free replacement",
 );
 

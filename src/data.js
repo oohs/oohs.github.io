@@ -56,9 +56,9 @@ const pageFooter = `
 
 const selectedWork = `
   <h2>Selected research</h2>
-  <p><b>Bin Zhang Group, MIT Chemistry.</b> I work with high-resolution Micro-C data and polymer models of chromatin. My projects have included improving contact-map balancing, testing maximum-entropy inversion, and studying local folding in active chromatin across mitosis.</p>
-  <p><b>Feng Zhang Lab, Broad Institute.</b> I’ve built computational tools for finding RNA-guided systems in genomes, including TIGRFinder, and explored language-model approaches to peptide activity, cleavage, and agentic biological discovery.</p>
-  <p><b>Forest White Lab, Koch Institute.</b> I studied signaling networks in glioblastoma with multi-omic data and cell type abundance deconvolution from proteomics.</p>`;
+  <p><b><a class="quiet-link" href="https://zhanggroup.mit.edu/" target="_blank" rel="noopener">Bin Zhang Group</a>, MIT Chemistry.</b> I work with high-resolution Micro-C data and polymer models of chromatin. My projects have included improving contact-map balancing, testing maximum-entropy inversion, and studying local folding in active chromatin across mitosis.</p>
+  <p><b><a class="quiet-link" href="https://www.zlab.bio/" target="_blank" rel="noopener">Feng Zhang Lab</a>, Broad Institute.</b> I’ve built computational tools for finding RNA-guided systems in genomes, including TIGRFinder, and explored language-model approaches to peptide activity, cleavage, and agentic biological discovery.</p>
+  <p><b><a class="quiet-link" href="https://white-lab.mit.edu/" target="_blank" rel="noopener">Forest White Lab</a>, Koch Institute.</b> I studied signaling networks in glioblastoma with multi-omic data and cell type abundance deconvolution from proteomics.</p>`;
 
 const aboutFace = `
   <figure class="page-photo">
@@ -67,7 +67,7 @@ const aboutFace = `
   </figure>
   <p class="opening-line">Hi, I’m Lawrence Long, currently <em>${liveAge}</em> years old.</p>
   <h2>Now</h2>
-  <p>I’m an incoming PhD student in the Harvard–MIT HST MEMP program. I’m interested in deciphering the molecular mechanisms of aging and understanding aging in the context of cellular states, with the goal of developing methods for reversing cellular aging.</p>
+  <p>I’m an incoming PhD student in the <a class="quiet-link" href="https://hst.mit.edu/academic-programs/memp" target="_blank" rel="noopener">Harvard–MIT HST MEMP</a> program. I’m interested in deciphering the molecular mechanisms of aging and understanding aging in the context of cellular states, with the goal of developing methods for reversing cellular aging.</p>
   <p>Graduated from MIT in 2026 in physics and computer science, with a math minor.</p>
   <p class="research-question">I like thinking about hard problems from a myriad of perspectives, pulling in ideas from physics, AI, biology, and other places to understand “why do we age?”</p>
   ${selectedWork}
@@ -122,7 +122,7 @@ const workFace = `
   <p>Through the USA Biology Olympiad (USABO) and Baology tutoring, I’ve written competition questions and taught high school students. I was a USABO finalist in 2021 and 2022 and was selected to represent USA in 2022 (albeit, the US did not attend the 2022 International Biology Olympiad due to COVID concerns).</p>
   <p>I am very passionate about teaching. “If you cannot explain something in simple terms, you don’t understand it. The best way to learn is to teach.”</p>
   <h2>Outside the lab</h2>
-  <p>I love table tennis (go MIT Table Tennis club!), and I’m also an avid gym-goer. These days, I’ve also been basketball-ing and pickle-ing. When I’m tired of sweating (and research), you can find me learning French and Arabic on Duolingo or twiddling with a Rubik’s cube (sub-15 avg these days).</p>
+  <p>I love table tennis (go <a class="quiet-link" href="https://web.mit.edu/tabletennis/index.html" target="_blank" rel="noopener">MIT Table Tennis club</a>!), and I’m also an avid gym-goer. These days, I’ve also been basketball-ing and pickle-ing. When I’m tired of sweating (and research), you can find me learning French and Arabic on Duolingo or twiddling with a Rubik’s cube (sub-15 avg these days).</p>
   <p>As you probably tell by this website, I would classify myself as a sweaty vibe-coder.</p>
   ${interestingCourses}
   ${contacts}

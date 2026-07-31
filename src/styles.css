@@ -35,6 +35,23 @@ a:visited {
   color: #551a8b;
 }
 
+.quiet-link,
+.quiet-link:visited {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 0.055em;
+  text-decoration-color: #a3a3a3;
+  text-underline-offset: 0.15em;
+  text-decoration-skip-ink: auto;
+}
+
+.quiet-link:hover,
+.quiet-link:focus-visible {
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 0.075em;
+}
+
 .home-page {
   width: min(900px, calc(100% - 32px));
   margin: 8px auto 48px;

@@ -1675,11 +1675,39 @@ assert.ok(contactFace.includes("active chromatin across mitosis"));
 assert.ok(contactFace.includes("agentic biological discovery"));
 assert.ok(contactFace.includes("signaling networks in glioblastoma"));
 assert.ok(contactFace.includes("cell type abundance deconvolution from proteomics"));
+for (const [label, href] of [
+  ["Harvard–MIT HST MEMP", "https://hst.mit.edu/academic-programs/memp"],
+  ["Bin Zhang Group", "https://zhanggroup.mit.edu/"],
+  ["Feng Zhang Lab", "https://www.zlab.bio/"],
+  ["Forest White Lab", "https://white-lab.mit.edu/"],
+]) {
+  assert.ok(
+    contactFace.includes(
+      `<a class="quiet-link" href="${href}" target="_blank" rel="noopener">${label}</a>`,
+    ),
+    `${label} should be an understated external link on page one`,
+  );
+}
+assert.ok(
+  getFaces(STUDIES[0].slug)[1].includes(
+    '<a class="quiet-link" href="https://web.mit.edu/tabletennis/index.html" target="_blank" rel="noopener">MIT Table Tennis club</a>',
+  ),
+);
+assert.match(styles, /\.quiet-link,\n\.quiet-link:visited \{[\s\S]*?color: inherit;[\s\S]*?text-decoration-color: #a3a3a3;/);
+assert.match(
+  motion,
+  /parent\.closest\("\.glyph-token, \[data-ui\], script, style, noscript"\)/,
+  "anchors must remain in the glyph pipeline so linked text still corrupts and disperses",
+);
+assert.match(
+  styles,
+  /\.glyph-token,\n\.glyph-ink \{[\s\S]*?text-decoration: inherit;/,
+  "glyph fragments must retain the quiet link underline during dispersal",
+);
 for (const gone of ["MIT Economics", "INSIGHT analysis", "inverse biological"]) {
   assert.ok(!contactFace.includes(gone), `"${gone}" should be gone`);
 }
 assert.ok(getFaces(STUDIES[0].slug)[1].includes("sweaty vibe-coder"));
-assert.ok(getFaces(STUDIES[0].slug)[1].includes("go MIT Table Tennis club"));
 
 // Leaving the attractor is twice the work it was.
 assert.equal(STUDIES[0].midpointRequired, 3000);
